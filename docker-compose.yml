@@ -1,0 +1,70 @@
+
+# When we have multiple containers running we will need a way to manage/control how certain requests get
+# mapped to the correct endpoint, eg content/js v rest api calls. This can be managed via an nginX server
+#
+# Client is sending to /values/..
+# Server (Fib.js) routes to /api/values/...
+# Nginx can look at the request path and route it to the appropriate (upstream)server. /api -> Express Server / -> React Server
+# Ports are not suitable for this solution, for prod, as it would be too verbose to the client.
+# default.conf will hold the routing rules for nginX
+# 
+#
+#
+#
+#
+version: '3'
+
+services:
+  postgres:
+    image: 'postgres:latest'
+  redis:
+    image: 'redis:latest'
+  nginx:
+    restart: always
+    build: 
+      context: ./nginx
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3050:80"
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /app/node_modules
+      - ./server:/app
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PGUSER=postgres
+      - PGHOST=postgres
+      - PGDATABASE=postgres
+      - PGPASSWORD=postgres_password
+      - PGPORT=5432
+    depends_on:
+      - postgres
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /app/node_modules
+      - ./client:/app
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /app/node_modules
+      - ./worker:/app
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+
+
+
+
+
+
+      
