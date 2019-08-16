@@ -1,0 +1,23 @@
+language: generic
+sudo: required
+# Have a copy of Docker running -> this will use the docker image
+services:
+ - docker
+
+ # This will build our image (.dev, not prod) so we can run our tests
+before_install:
+ - docker build -t alanstill/multi-test -f ./client/Dockerfile.dev ./client
+
+ # tell Travis to run our tests
+script:
+ - docker run -e CI=true alanstill/multi--test npm run test
+# No need to specify the dockerfile as we will be using the production level one (Dockerfile)
+after_success:
+  - docker build -t alanstill/multi-client ./client
+  - docker build -t alanstill/multi-nginx ./nginx
+  - docker build -t alanstill/multi-server ./server
+  - docker build -t alanstill/multi-worker ./worker
+
+# Login to the Docker cli - this will need to be added as ENV VARS
+
+# Push the images just created up to the Docker Hub
