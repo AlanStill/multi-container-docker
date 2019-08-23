@@ -1,3 +1,29 @@
+# AWS Elastic BS - when we have a single Dockerfile it will use that to build the image and run internally
+# With multiple containers we need to specify how these images should run as a group/collective.
+
+# EBS does not know HOW to deal with Containers -> it will delegate to ECS (Amazon Elastic Container Service)
+# where a task definition is created wth instructions on how to run a single file. 
+
+# similar to docker-compose (which is for dev), the dockerrun.aws.json file 
+# will be used to tell multiple docker files how to run.
+# D-C -> refers to services -> can dictate how to build an image
+# AWS -> Container Definitions -> just pulls image - not concerned with how it gets built
+
+# In our dev (docker-compose) file we manually created containers for redis and postrgres
+# In the AWS world, it is better to split these 'containers' into 2 different AWS Services
+# AWS Elastic Cache for Redis
+# AWS RDS (Relational Database Service) for Postgres
+# The benefit of using these different services is that they are loosely coupled from each other
+# so, if we can easily switch how we talk to each one without impacting the others.
+#
+# By Default AWS will not have a way for these services to communicate. This can be 
+# achieved by creating new Security Groups (Firewall Rules) in the AWS Console.
+# All AWS services will run within a single Virtual Private Cloud (VPC). The Security
+# Group will need to allow traffic from other AWS Services that run within the same group.
+
+# Any env variables that we set up in AWS EB will be copied to each of the container definitions we have
+# created in our dockerrun.aws.json 
+
 language: generic
 sudo: required
 # Have a copy of Docker running -> this will use the docker image
@@ -24,3 +50,18 @@ after_success:
   - docker push alanstill/multi-nginx
   - docker push alanstill/multi-server
   - docker push alanstill/multi-worker
+  # tell AWS EB to pull the new images and deploy them
+deploy:
+  provider: elasticbeanstalk
+  region: "eu-west-2"
+  app: "multi-docker"
+  env: "MultiDocker-env"
+  bucket_name: elasticbeanstalk-eu-west-2-884443452210
+  bucket_path: docker-multi
+  on:
+    branch: master
+  # API keys are required to access AWS - set up via IAM AWS Console
+ access_key_id: 
+  secure : "$AWS_ACCESS_KEY"
+ secret_access_key:
+  secure: "$AWS_SECRET_KEY"
