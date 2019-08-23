@@ -52,16 +52,16 @@ after_success:
   - docker push alanstill/multi-worker
   # tell AWS EB to pull the new images and deploy them
 deploy:
-  provider: elasticbeanstalk
-  region: "eu-west-2"
-  app: "multi-docker"
-  env: "MultiDocker-env"
-  bucket_name: elasticbeanstalk-eu-west-2-884443452210
-  bucket_path: docker-multi
-  on:
-    branch: master
+ provider: elasticbeanstalk
+ region: "eu-west-2"
+ app: "multi-docker"
+ env: "MultiDocker-env"
+ bucket_name: elasticbeanstalk-eu-west-2-884443452210
+ bucket_path: docker-multi
+ on:
+  branch: master
   # API keys are required to access AWS - set up via IAM AWS Console
  access_key_id: 
-  secure : "$AWS_ACCESS_KEY"
+  secure: "$AWS_ACCESS_KEY"
  secret_access_key:
   secure: "$AWS_SECRET_KEY"
